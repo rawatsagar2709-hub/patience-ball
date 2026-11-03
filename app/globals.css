@@ -631,3 +631,29 @@ body { font-family: 'Manrope Variable', system-ui, -apple-system, 'Segoe UI', sa
 .btn { letter-spacing: 0.04em; }
 .menu h1 span { font-size: clamp(2.4rem, 11.5vw, 3.3rem); line-height: 1; }
 .menu h1 em { font-size: clamp(1.9rem, 8.6vw, 2.5rem); }
+
+/* ---- laptop and desktop: sign and controls on the left, a big playable board on the right ---- */
+@media (min-width: 1000px) and (min-height: 560px) {
+  .menu { display: grid; grid-template-columns: minmax(320px, 400px) minmax(420px, 620px); column-gap: clamp(48px, 7vw, 120px); justify-content: center; align-content: center; justify-items: center; row-gap: 12px; padding: 32px 48px; overflow-y: auto; }
+  .menu > * { grid-column: 1; }
+  .menu > .mb-wrap { grid-column: 2; grid-row: 1 / span 8; align-self: center; width: 100%; max-width: 620px; margin: 0; }
+  .menu > h1 { margin-top: 0; }
+  .menu .tagline { text-align: center; max-width: 340px; }
+  .menu-actions, .more, .guide { width: min(340px, 100%); }
+}
+@media (min-width: 1000px) and (min-height: 560px) {
+  .menu > .mb-wrap { max-width: 500px; perspective: 1100px; }
+  .menu .tagline { margin-top: 12px; }
+}
+
+/* ---- earned ability: a small brass-trimmed card, thumb reachable, never covers the board centre ---- */
+.award { position: fixed; z-index: 30; left: 50%; bottom: calc(96px + var(--safe-b, 0px)); transform: translateX(-50%); width: min(420px, calc(100% - 24px)); display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; align-items: center; padding: 12px; border-radius: 16px; background: #1d3a31; border: 1px solid rgba(243, 234, 215, 0.22); box-shadow: 0 0 0 3px #b8893a, 0 16px 32px rgba(0, 0, 0, 0.5); animation: award-in 0.5s var(--ease) both; }
+.award-ico { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: #e2b777; color: #3b2412; box-shadow: 0 3px 0 #8a5a2b; }
+.award-txt { display: grid; gap: 2px; min-width: 0; }
+.award-txt small { color: #e0a93b; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.award-txt strong { font-family: var(--display); font-weight: 400; font-size: 1.15rem; letter-spacing: 0.02em; }
+.award-txt span { color: #c9d6c4; font-size: 0.85rem; text-wrap: pretty; }
+.award-btns { grid-column: 1 / -1; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+.award-btns .btn { min-height: 44px; }
+@keyframes award-in { from { opacity: 0; transform: translate(-50%, 24px); } }
+@media (prefers-reduced-motion: reduce) { .award { animation: none; } }

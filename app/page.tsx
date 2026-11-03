@@ -14,6 +14,7 @@ import LevelSelect from '@/components/ui/LevelSelect';
 import { bumpMission } from '@/lib/missions';
 import { ABILITIES, bumpTask, readAbilities, spendAbility, type AbilityKey, type TaskKind } from '@/lib/abilities';
 import { completeDaily, completeWeekly, currentStreak, dailyLevel, doneToday, weeklyDone, weeklyLevel } from '@/lib/daily';
+import AwardToast from '@/components/ui/AwardToast';
 import TipCard from '@/components/ui/TipCard';
 import { markTipsSeen, newTips, tipsOf, type Tip } from '@/lib/tips';
 import Tutorial from '@/components/ui/Tutorial';
@@ -36,6 +37,7 @@ export default function Page() {
   const saveRef = useRef(save);
   const [loaded, setLoaded] = useState(false);
   const [notice, setNotice] = useState('');
+  const [award, setAward] = useState<{ key: AbilityKey; live: boolean } | null>(null); // a freshly earned ability
   const [screen, setScreen] = useState<Screen>('menu');
   const [stale, setStale] = useState(false); // a newer version is live
   const [level, setLevel] = useState<Level | null>(null);
@@ -64,7 +66,7 @@ export default function Page() {
     const earn = (kind: TaskKind) => {
       if (practiceRef.current) return;
       const won = bumpTask(kind);
-      if (won.length) { setNotice(`Weekly task done: ${ABILITIES[won[0]].name} +1`); setAbTick((t) => t + 1); }
+      if (won.length) { setAward({ key: won[0], live: true }); setAbTick((t) => t + 1); }
     };
     const cup = () => { bumpMission('balls'); earn('balls'); };
     const combo = (e: Event) => { if ((e as CustomEvent<number>).detail >= 3) { bumpMission('combo'); earn('combo'); } };
@@ -196,7 +198,7 @@ export default function Page() {
       bumpMission('wins');
       if (!practice) {
         const won = [...bumpTask('wins'), ...(starsFor(s.lost, s.allowedLoss) === 3 ? bumpTask('stars3') : [])];
-        if (won.length) { setNotice(`Weekly task done: ${won.map((k) => ABILITIES[k].name).join(', ')} +1`); setAbTick((t) => t + 1); }
+        if (won.length) { setAward({ key: won[0], live: false }); setAbTick((t) => t + 1); }
       }
     }
     const cur = saveRef.current;
@@ -365,7 +367,7 @@ export default function Page() {
   const used = usedAb.key === runKey ? usedAb.used : [];
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const stock = useMemo(() => (loaded ? readAbilities().stock : { extra: 0, home: 0, freeze: 0, slow: 0 }), [loaded, screen, abTick, usedAb]);
-  const useAbility = (k: AbilityKey) => {
+  const fireAbility = (k: AbilityKey) => {
     if (used.includes(k) || readAbilities().stock[k] <= 0) return;
     if (!controller.current?.useAbility(k)) { setNotice(k === 'extra' ? 'Spare balls are only available if you own the ability when the level starts.' : 'That cannot be used right now.'); return; }
     spendAbility(k);
@@ -409,6 +411,7 @@ export default function Page() {
           <b>Control<br /><em>Your</em><br />Balls</b>
         </div>
       )}
+      {award && <AwardToast ability={award.key} canUse={award.live && award.key !== 'extra' && screen === 'game' && snap?.status === 'playing' && !used.includes(award.key)} onUse={() => { fireAbility(award.key); setAward(null); }} onLater={() => setAward(null)} />}
       {notice && (
         <div className="notice" role="alert">
           {notice} <button className="link" onClick={() => setNotice('')}>Dismiss</button>
@@ -467,7 +470,7 @@ export default function Page() {
             onFlat={() => controller.current?.setPointer(0, 0)}
             stock={stock}
             usedAbilities={used}
-            onAbility={useAbility}
+            onAbility={fireAbility}
             onPhoneTilt={togglePhoneTilt}
           />
           {paused && snap?.status === 'playing' && <PauseOverlay sound={save.settings.sound} onSound={() => setSettings({ ...save.settings, sound: !save.settings.sound })} canGyro={canTiltPhone} gyro={phoneTilt} onGyro={togglePhoneTilt} onHelp={() => { setPaused(false); const t = level ? tipsOf(level) : []; if (t.length) setTips(t); }} practice={practice} onPractice={() => { setPractice((p) => !p); setPaused(false); restart(); }} onResume={() => setPaused(false)} onRestart={restart} onMenu={toMenu} />}
