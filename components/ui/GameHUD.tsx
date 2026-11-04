@@ -149,17 +149,21 @@ export default function GameHUD({ label, tier, classCount, snap, attempt, firstL
           <button className="btn icon" onClick={onCamera} aria-label="Reset view"><Icon name="view" /></button>
           <RotatePad onOrbit={onOrbit} />
           <button className="btn icon" onClick={onFlat} aria-label="Level the board"><Icon name="level" /></button>
-          <button className="btn icon ab" onClick={() => setMenu((m) => !m)} aria-expanded={menu} aria-label={`Abilities, ${total} available`}>
+          <button className={`btn icon ab${total > 0 ? ' ready' : ''}`} onClick={() => setMenu((m) => !m)} aria-expanded={menu} aria-label={`Abilities, ${total} available`}>
             <Icon name="bolt" />{total > 0 && <b>{total}</b>}
           </button>
         </div>
         {menu && (
           <div className="ab-menu" role="menu">
+            <p className="ab-head">Power-ups <small>one of each per try</small></p>
             {(Object.keys(ABILITIES) as AbilityKey[]).map((k) => {
-              const gone = usedAbilities.includes(k) || stock[k] <= 0;
+              const spent = usedAbilities.includes(k);
+              const gone = spent || stock[k] <= 0;
               return (
                 <button key={k} role="menuitem" className="ab-item" disabled={gone} onClick={() => { onAbility(k); setMenu(false); }}>
-                  <Icon name={k} /><span><strong>{ABILITIES[k].name}</strong><small>{usedAbilities.includes(k) ? 'Used this try' : ABILITIES[k].text}</small></span><b>×{stock[k]}</b>
+                  <span className="ab-tok" aria-hidden><Icon name={k} size={22} /></span>
+                  <span><strong>{ABILITIES[k].name}</strong><small>{spent ? 'Used this try' : stock[k] <= 0 ? 'Earn it from a weekly task' : ABILITIES[k].text}</small></span>
+                  <span className="ab-pips" aria-label={`${stock[k]} in stock`}>{Array.from({ length: Math.min(5, Math.max(stock[k], 0)) }, (_, i) => <i key={i} />)}{stock[k] <= 0 && <em>0</em>}</span>
                 </button>
               );
             })}

@@ -657,3 +657,27 @@ body { font-family: 'Manrope Variable', system-ui, -apple-system, 'Segoe UI', sa
 .award-btns .btn { min-height: 44px; }
 @keyframes award-in { from { opacity: 0; transform: translate(-50%, 24px); } }
 @media (prefers-reduced-motion: reduce) { .award { animation: none; } }
+
+/* ---- power-up button: a brass medallion that glows only when you hold a charge ---- */
+.hud-bottom .tools .btn.ab { width: 52px; min-width: 52px; height: 52px; margin-top: -8px; border-radius: 50%; color: #3b2412; background: radial-gradient(circle at 35% 28%, #fff1b8, #e2b04a 52%, #a8741f) !important; box-shadow: 0 4px 0 #6b4510, 0 0 0 3px #3b2412, 0 8px 14px rgba(0, 0, 0, 0.4) !important; }
+.hud-bottom .tools .btn.ab:not(.ready) { background: radial-gradient(circle at 35% 28%, #6c6a5c, #4a4a40 60%, #34342c) !important; color: #a9a894; box-shadow: 0 3px 0 #1e1e18, 0 0 0 3px #2a2a22 !important; }
+.hud-bottom .tools .btn.ab.ready::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid #f4dc9a; opacity: 0; animation: ab-ring 2.4s var(--ease) infinite; pointer-events: none; }
+@keyframes ab-ring { 0% { transform: scale(1); opacity: 0.8; } 70%, 100% { transform: scale(1.45); opacity: 0; } }
+.btn.ab b { top: -6px; right: -6px; min-width: 22px; height: 22px; background: #1d3a31; color: #f4dc9a; box-shadow: 0 0 0 2px #e2b04a; font-family: var(--display); font-weight: 400; }
+.ab-menu { gap: 4px; padding: 12px; border-radius: 20px; box-shadow: 0 0 0 3px #3b2412, 0 18px 34px rgba(0, 0, 0, 0.5); }
+.ab-menu::after { content: ''; position: absolute; right: 22px; bottom: -8px; width: 16px; height: 16px; background: #1d3a31; transform: rotate(45deg); box-shadow: 3px 3px 0 #3b2412; }
+.ab-head { margin: 0 4px 4px; font-family: var(--display); letter-spacing: 0.04em; color: #f4dc9a; display: flex; justify-content: space-between; align-items: baseline; }
+.ab-head small { font-family: 'Manrope Variable', sans-serif; letter-spacing: 0; font-size: 0.72rem; color: var(--muted); }
+.ab-item { grid-template-columns: 40px 1fr auto; background: #264a3e; box-shadow: none; border: 1px solid rgba(243, 234, 215, 0.14); }
+.ab-item:not(:disabled):active { transform: scale(0.98); }
+.ab-tok { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #e2b777; color: #3b2412; box-shadow: 0 2px 0 #8a5a2b; }
+.ab-item:disabled .ab-tok { background: #5b6a62; color: #a9b3ad; box-shadow: none; }
+.ab-item strong { font-family: var(--display); font-weight: 400; letter-spacing: 0.02em; font-size: 1rem; }
+.ab-pips { display: flex; gap: 4px; align-items: center; }
+.ab-pips i { width: 10px; height: 10px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff1b8, #e2b04a); box-shadow: 0 1px 0 #6b4510; }
+.ab-pips em { font-style: normal; font-family: var(--display); color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .hud-bottom .tools .btn.ab.ready::before { animation: none; opacity: 0.6; } }
+/* badge sits on the rim, above and outside the medallion, in brass (no green blob inside it) */
+.hud-bottom .tools .btn.ab { overflow: visible; }
+.hud-bottom .tools .btn.ab b { top: -14px; right: -8px; min-width: 24px; height: 24px; background: #fff1b8; color: #3b2412; box-shadow: 0 0 0 3px #3b2412, 0 3px 6px rgba(0, 0, 0, 0.4); z-index: 2; }
+.hud-bottom .tools .btn.ab:not(.ready) b { background: #8d8c7b; }
