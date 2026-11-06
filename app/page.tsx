@@ -12,7 +12,7 @@ import MainMenu from '@/components/ui/MainMenu';
 import GameHUD from '@/components/ui/GameHUD';
 import LevelSelect from '@/components/ui/LevelSelect';
 import { bumpMission } from '@/lib/missions';
-import { ABILITIES, bumpTask, readAbilities, spendAbility, type AbilityKey, type TaskKind } from '@/lib/abilities';
+import { ABILITIES, bumpTask, claimSecret, readAbilities, spendAbility, type AbilityKey, type TaskKind } from '@/lib/abilities';
 import { completeDaily, completeWeekly, currentStreak, dailyLevel, doneToday, weeklyDone, weeklyLevel } from '@/lib/daily';
 import AwardToast from '@/components/ui/AwardToast';
 import TipCard from '@/components/ui/TipCard';
@@ -420,6 +420,7 @@ export default function Page() {
       {screen === 'menu' && (
         <MainMenu
           ready={loaded}
+          onSecret={() => { sound.click(); if (claimSecret()) { setAbTick((t) => t + 1); setNotice('Secret found: +1 of every power-up. Thanks for looking closely.'); } else setNotice('Already found. Every power-up has its charge.'); }}
           level={Math.min(save.currentLevel, save.highestUnlocked)}
           completed={save.stats.levelsCompleted}
           onTutorial={() => { sound.click(); start(1, undefined, false, true); }}

@@ -12,6 +12,7 @@ interface Props {
   onRandom: () => void;
   onLevels: () => void;
   onSettings: () => void;
+  onSecret: () => void;
   onTutorial: () => void;
   onDaily: () => void;
   daily: { done: boolean; streak: number; weeklyDone: boolean };
@@ -20,7 +21,7 @@ interface Props {
   ready: boolean;
 }
 
-export default function MainMenu({ level, completed, onPlay, onRandom, onLevels, onSettings, onTutorial, onDaily, daily, onWeekly, onInstall, ready }: Props) {
+export default function MainMenu({ level, completed, onPlay, onRandom, onLevels, onSettings, onSecret, onTutorial, onDaily, daily, onWeekly, onInstall, ready }: Props) {
   // Weekly/missions read localStorage, so they render only after hydration.
   const [mounted, setMounted] = useState(false);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 0); return () => clearTimeout(t); }, []);
@@ -96,6 +97,10 @@ export default function MainMenu({ level, completed, onPlay, onRandom, onLevels,
         </ul>
       </details>
       </details>
+      <button type="button" className="credit" onClick={onSecret} aria-label="Made by Sagar S Rawat">
+        <small aria-hidden>made by</small>
+        <span aria-hidden>{'Sagar S Rawat'.split('').map((c, i) => <i key={i} style={{ ['--k' as string]: i }}>{c === ' ' ? '\u00a0' : c}</i>)}</span>
+      </button>
       <button className="gear" onClick={onSettings} aria-label="Settings"><Icon name="gear" size={22} /></button>
     </main>
   );

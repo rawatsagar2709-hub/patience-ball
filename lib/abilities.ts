@@ -58,3 +58,15 @@ export function spendAbility(key: AbilityKey): boolean {
   write(s);
   return true;
 }
+
+/** One-time bonus: +1 of every ability (capped). Returns false if it was already claimed on this device. */
+export function claimSecret(): boolean {
+  try {
+    if (localStorage.getItem('pb_secret')) return false;
+    localStorage.setItem('pb_secret', '1');
+  } catch { return false; }
+  const s = readAbilities();
+  (Object.keys(s.stock) as AbilityKey[]).forEach((k) => { s.stock[k] = Math.min(MAX, s.stock[k] + 1); });
+  write(s);
+  return true;
+}
