@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { readMissions } from '@/lib/missions';
 import { ABILITIES, TASKS, readAbilities, type AbilityKey } from '@/lib/abilities';
 import Icon from './Icons';
@@ -22,6 +22,44 @@ interface Props {
 }
 
 export default function MainMenu({ level, completed, onPlay, onRandom, onLevels, onSettings, onSecret, onTutorial, onDaily, daily, onWeekly, onInstall, ready }: Props) {
+  // Maker's mark: every letter takes off on a rocket flame, scatters across the screen, then the bonus is paid out.
+  const nameRef = useRef<HTMLSpanElement>(null);
+  const flying = useRef(false);
+  const launch = () => {
+    const el = nameRef.current;
+    if (!el || flying.current) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { onSecret(); return; }
+    flying.current = true;
+    const letters = Array.from(el.querySelectorAll('i'));
+    const W = innerWidth, H = innerHeight;
+    let left = 0;
+    letters.forEach((l, n) => {
+      const ch = l.textContent?.trim();
+      if (!ch) return;
+      left++;
+      const r = l.getBoundingClientRect();
+      const tx = 24 + Math.random() * (W - 48) - r.left, ty = 70 + Math.random() * (H - 140) - r.top;
+      const ang = (Math.atan2(ty, tx) * 180) / Math.PI + 90; // nose points along the flight
+      const f = document.createElement('div');
+      f.className = 'rocket';
+      f.style.cssText = `left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`;
+      f.innerHTML = `<b>${ch}</b><u></u>`;
+      document.body.appendChild(f);
+      l.style.visibility = 'hidden';
+      const go = f.animate([
+        { transform: `translate(0,0) rotate(0deg) scale(1)`, opacity: 1, offset: 0 },
+        { transform: `translate(0,-6px) rotate(${ang}deg) scale(1.15)`, opacity: 1, offset: 0.12, easing: 'cubic-bezier(0.5, 0, 0.9, 0.6)' },
+        { transform: `translate(${tx}px,${ty}px) rotate(${ang}deg) scale(1.3)`, opacity: 1, offset: 0.62 },
+        { transform: `translate(${tx}px,${ty}px) rotate(${ang + 360}deg) scale(1.3)`, opacity: 1, offset: 0.85 },
+        { transform: `translate(${tx}px,${ty}px) rotate(${ang + 360}deg) scale(0.2)`, opacity: 0, offset: 1 },
+      ], { duration: 2400, delay: n * 45, fill: 'both' });
+      go.onfinish = () => {
+        f.remove(); l.style.visibility = '';
+        if (--left === 0) { flying.current = false; onSecret(); }
+      };
+    });
+    if (left === 0) flying.current = false;
+  };
   // Weekly/missions read localStorage, so they render only after hydration.
   const [mounted, setMounted] = useState(false);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 0); return () => clearTimeout(t); }, []);
@@ -97,9 +135,9 @@ export default function MainMenu({ level, completed, onPlay, onRandom, onLevels,
         </ul>
       </details>
       </details>
-      <button type="button" className="credit" onClick={onSecret} aria-label="Made by Sagar S Rawat">
+      <button type="button" className="credit" onClick={launch} aria-label="Made by Sagar S Rawat">
         <small aria-hidden>made by</small>
-        <span aria-hidden>{'Sagar S Rawat'.split('').map((c, i) => <i key={i} style={{ ['--k' as string]: i }}>{c === ' ' ? '\u00a0' : c}</i>)}</span>
+        <span aria-hidden ref={nameRef}>{'Sagar S Rawat'.split('').map((c, i) => <i key={i} style={{ ['--k' as string]: i }}>{c === ' ' ? '\u00a0' : c}</i>)}</span>
       </button>
       <button className="gear" onClick={onSettings} aria-label="Settings"><Icon name="gear" size={22} /></button>
     </main>

@@ -701,3 +701,10 @@ button.credit { background: none; border: 0; padding: 8px 12px; cursor: pointer;
 .credit:active span { transform: rotate(-3deg) scale(0.94); }
 .credit:focus-visible { outline: 3px solid #f4dc9a; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .credit i, .credit small { transition: none; } }
+/* rocket letters: a flame trails each one while it flies */
+.rocket { position: fixed; z-index: 90; pointer-events: none; display: grid; place-items: center; font-family: var(--display); font-size: 1.15rem; will-change: transform; }
+.rocket b { font-weight: 400; color: #fff1b8; text-shadow: 0 2px 0 #6b4510, 0 0 12px rgba(255, 200, 90, 0.9); position: relative; z-index: 1; }
+.rocket u { position: absolute; top: 85%; left: 50%; width: 10px; height: 34px; margin-left: -5px; border-radius: 50% 50% 60% 60% / 20% 20% 90% 90%; background: linear-gradient(#fff6c8, #ffb23c 35%, #ff5a1f 70%, transparent); transform-origin: top center; animation: flame 0.09s linear infinite alternate; filter: blur(0.6px); }
+@keyframes flame { from { transform: scaleY(0.75) scaleX(0.9); opacity: 0.85; } to { transform: scaleY(1.25) scaleX(1.1); opacity: 1; } }
+.rocket { font-size: 1.15rem; } .rocket b { font-size: 1.9em; }
+.rocket u { width: 13px; height: 44px; margin-left: -6px; }
