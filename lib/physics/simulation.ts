@@ -4,7 +4,7 @@ import type { GameSnapshot, Level } from '../types';
 import { PLATE_T, spawnPositions } from '../levels/geometry';
 import { FIXED_DT, GRAVITY, PhysicsWorld } from './physicsWorld';
 
-export type SimEvent = 'collected' | 'lost' | 'won' | 'failed' | 'bump' | 'portal';
+export type SimEvent = 'collected' | 'lost' | 'won' | 'failed' | 'bump' | 'portal' | 'blocked';
 export type BallStatus = 'active' | 'collected' | 'lost' | 'reserve';
 
 const FALL_BAND = 0.6; // how far below a plate a ball must be (and no further) to count as having dropped through
@@ -31,6 +31,9 @@ export class Simulation {
   freeze = 0;
   private spawn: Array<{ x: number; y: number; z: number }>;
   /** Why and where each ball was lost; handy for debugging level design. */
+  /** Seconds each ball has sat on top of a green hole too small for it (the "blocked" event). */
+  private blockT: number[] = [];
+  private blockedAt: number[] = [];
   readonly lossLog: Array<{ ball: number; tray: number; how: 'trap' | 'void'; t: number; at?: string }> = [];
   onEvent: (e: SimEvent) => void = () => {};
   private tx = 0;
@@ -256,6 +259,17 @@ export class Simulation {
       const p = b.translation();
       if (st === 'active') {
         const r = level.balls[i].radius;
+        // A bigger ball parked on a smaller green hole blocks it: tell the game once it has stayed there for a moment.
+        const bcls = level.balls[i].cls;
+        const sv = b.linvel();
+        const slow = Math.hypot(sv.x, sv.y, sv.z) < 0.7;
+        let over = false;
+        if (slow) for (const t of level.trays) {
+          if (Math.abs(p.y - (t.cy + PLATE_T / 2 + r)) > 0.35) continue;
+          if (t.holes.some((q) => q.kind === 'goal' && (q.cls ?? 0) < bcls && Math.hypot(p.x - q.x, p.z - q.z) < q.r + r * 0.4)) { over = true; break; }
+        }
+        this.blockT[i] = over ? (this.blockT[i] ?? 0) + FIXED_DT : 0;
+        if (this.blockT[i] > 0.45 && this.elapsed - (this.blockedAt[i] ?? -99) > 8) { this.blockedAt[i] = this.elapsed; this.onEvent('blocked'); }
         for (const t of level.trays) {
           const under = t.cy - PLATE_T / 2 - r;
           if (p.y > under || p.y < under - FALL_BAND) continue;

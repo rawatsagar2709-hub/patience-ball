@@ -708,3 +708,24 @@ button.credit { background: none; border: 0; padding: 8px 12px; cursor: pointer;
 @keyframes flame { from { transform: scaleY(0.75) scaleX(0.9); opacity: 0.85; } to { transform: scaleY(1.25) scaleX(1.1); opacity: 1; } }
 .rocket { font-size: 1.15rem; } .rocket b { font-size: 1.9em; }
 .rocket u { width: 13px; height: 44px; margin-left: -6px; }
+
+/* ---- More: a box above the whole screen instead of unfolding the menu ---- */
+.more-btn { width: min(340px, 100%); min-height: 44px; border-radius: 14px; background: transparent; border: 2px dashed rgba(243, 234, 215, 0.35); color: #f3ead7; font-family: var(--display); letter-spacing: 0.04em; cursor: pointer; }
+.more-btn span { color: #e0a93b; margin-left: 4px; }
+@media (hover: hover) { .more-btn:hover { border-color: #f4dc9a; } }
+.sheet-back { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: rgba(8, 20, 16, 0.72); animation: fade 0.25s var(--ease) both; }
+.sheet { width: min(560px, 100%); max-height: min(86vh, 720px); overflow-y: auto; overscroll-behavior: contain; padding: 16px; border-radius: 20px; background: #1d3a31; box-shadow: 0 0 0 3px #b8893a, 0 24px 60px rgba(0, 0, 0, 0.6); animation: pop 0.45s var(--ease) both; display: grid; gap: 16px; }
+.sheet header { display: flex; align-items: center; justify-content: space-between; }
+.sheet h2 { margin: 0; }
+.sheet-x { width: 40px; min-width: 40px; height: 40px; font-size: 1.6rem; line-height: 1; }
+.sheet-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sheet-modes button { display: grid; gap: 4px; align-content: start; text-align: left; padding: 12px; border-radius: 14px; border: 1px solid rgba(243, 234, 215, 0.18); background: #264a3e; color: #f3ead7; cursor: pointer; }
+.sheet-modes button:disabled { opacity: 0.5; }
+.sheet-modes strong { font-family: var(--display); font-weight: 400; font-size: 1.05rem; letter-spacing: 0.03em; }
+.sheet-modes small { color: #c9d6c4; font-size: 0.78rem; text-wrap: pretty; }
+@media (hover: hover) { .sheet-modes button:hover:not(:disabled) { border-color: #f4dc9a; transform: translateY(-1px); } }
+@media (max-width: 520px) { .sheet-modes { grid-template-columns: 1fr; } .sheet-modes button { grid-template-columns: 1fr; } }
+.sheet .weekly, .sheet .missions, .sheet .guide { width: 100%; }
+@keyframes fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .sheet-back, .sheet { animation: none; } }
+@media (max-width: 520px) { .sheet-modes { grid-template-columns: repeat(3, 1fr); } .sheet-modes small { display: none; } .sheet-modes button { text-align: center; padding: 12px 4px; } }

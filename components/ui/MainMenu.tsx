@@ -62,8 +62,11 @@ export default function MainMenu({ level, completed, onPlay, onRandom, onLevels,
   };
   // Weekly/missions read localStorage, so they render only after hydration.
   const [mounted, setMounted] = useState(false);
+  const [more, setMore] = useState(false);
+  useEffect(() => { if (!more) return; const k = (e: KeyboardEvent) => e.key === 'Escape' && setMore(false); window.addEventListener('keydown', k); return () => window.removeEventListener('keydown', k); }, [more]);
   useEffect(() => { const t = setTimeout(() => setMounted(true), 0); return () => clearTimeout(t); }, []);
   return (
+    <>
     <main className="menu" id="main">
       <h1 aria-label="Control Your Balls"><span>Control</span><em>Your</em><span>Balls</span></h1>
       <MenuBoard onWin={onPlay} ready={ready} />
@@ -81,38 +84,50 @@ export default function MainMenu({ level, completed, onPlay, onRandom, onLevels,
         {onInstall && <button className="btn ghost" onClick={onInstall}><Icon name="install" size={18} /> Install app</button>}
       </div>
       <p className="where">World {Math.ceil(level / 10)} · level {((level - 1) % 10) + 1} of 10</p>
-      <details className="more">
-        <summary>More</summary>
-        <nav className="tabs" aria-label="More modes">
-          <button onClick={onWeekly} disabled={!ready}>{daily.weeklyDone ? '✓ Weekly' : 'Weekly'}</button>
-          <button onClick={onRandom} disabled={!ready}>Random</button>
-          <button onClick={onTutorial} disabled={!ready}>Tutorial</button>
-        </nav>
+      <button type="button" className="more-btn" onClick={() => setMore(true)} aria-haspopup="dialog">More <span aria-hidden>+</span></button>
+      <button type="button" className="credit" onClick={launch} aria-label="Made by Sagar S Rawat">
+        <small aria-hidden>made by</small>
+        <span aria-hidden ref={nameRef}>{'Sagar S Rawat'.split('').map((c, i) => <i key={i} style={{ ['--k' as string]: i }}>{c === ' ' ? '\u00a0' : c}</i>)}</span>
+      </button>
+      <button className="gear" onClick={onSettings} aria-label="Settings"><Icon name="gear" size={22} /></button>
+    </main>
+      {more && (
+        <div className="sheet-back" onClick={() => setMore(false)}>
+          <div className="sheet" role="dialog" aria-modal="true" aria-labelledby="more-title" onClick={(e) => e.stopPropagation()}>
+            <header>
+              <h2 id="more-title">More</h2>
+              <button type="button" className="btn icon sheet-x" onClick={() => setMore(false)} aria-label="Close" autoFocus>×</button>
+            </header>
+            <div className="sheet-modes">
+              <button type="button" onClick={() => { setMore(false); onWeekly(); }} disabled={!ready}><strong>{daily.weeklyDone ? '✓ Weekly' : 'Weekly'}</strong><small>One shared level a week</small></button>
+              <button type="button" onClick={() => { setMore(false); onRandom(); }} disabled={!ready}><strong>Random</strong><small>A fresh level every time</small></button>
+              <button type="button" onClick={() => { setMore(false); onTutorial(); }} disabled={!ready}><strong>Tutorial</strong><small>The basics in a minute</small></button>
+            </div>
         {mounted && <section className="weekly" aria-label="Weekly tasks">
-          <h2>Weekly tasks: earn abilities</h2>
-          <ul>
-            {(() => { const a = readAbilities(); return TASKS.map((t, i) => (
-              <li key={t.kind} className={a.prog[i] >= t.goal ? 'done' : ''}>
-                <i style={{ width: `${(a.prog[i] / t.goal) * 100}%` }} />
-                <span>{a.prog[i] >= t.goal ? '✓ ' : ''}{t.label}</span><b>{a.prog[i]}/{t.goal}</b>
-                <small>Reward: {ABILITIES[t.reward].name}</small>
-              </li>
-            )); })()}
-          </ul>
-          <p className="have">{(Object.keys(ABILITIES) as AbilityKey[]).map((k) => `${ABILITIES[k].name} ×${readAbilities().stock[k]}`).join('  ·  ')}</p>
-        </section>}
-        {mounted && <section className="missions" aria-label="Daily missions">
-          <h2>Today&apos;s missions</h2>
-          <ul>
-            {readMissions().map((m) => (
-              <li key={m.kind} className={m.have >= m.goal ? 'done' : ''}>
-                <i style={{ width: `${(m.have / m.goal) * 100}%` }} />
-                <span>{m.have >= m.goal ? '✓ ' : ''}{m.label}</span><b>{m.have}/{m.goal}</b>
-              </li>
-            ))}
-          </ul>
-        </section>}
-      <details className="guide">
+              <h2>Weekly tasks: earn abilities</h2>
+              <ul>
+                {(() => { const a = readAbilities(); return TASKS.map((t, i) => (
+                  <li key={t.kind} className={a.prog[i] >= t.goal ? 'done' : ''}>
+                    <i style={{ width: `${(a.prog[i] / t.goal) * 100}%` }} />
+                    <span>{a.prog[i] >= t.goal ? '✓ ' : ''}{t.label}</span><b>{a.prog[i]}/{t.goal}</b>
+                    <small>Reward: {ABILITIES[t.reward].name}</small>
+                  </li>
+                )); })()}
+              </ul>
+              <p className="have">{(Object.keys(ABILITIES) as AbilityKey[]).map((k) => `${ABILITIES[k].name} ×${readAbilities().stock[k]}`).join('  ·  ')}</p>
+            </section>}
+            {mounted && <section className="missions" aria-label="Daily missions">
+              <h2>Today&apos;s missions</h2>
+              <ul>
+                {readMissions().map((m) => (
+                  <li key={m.kind} className={m.have >= m.goal ? 'done' : ''}>
+                    <i style={{ width: `${(m.have / m.goal) * 100}%` }} />
+                    <span>{m.have >= m.goal ? '✓ ' : ''}{m.label}</span><b>{m.have}/{m.goal}</b>
+                  </li>
+                ))}
+              </ul>
+            </section>}
+            <details className="guide">
         <summary>How to play &amp; obstacle guide</summary>
         <ol>
           <li><b>1</b>Drag the board to tilt it; it stays tilted. Drag the strip at the bottom to turn the view</li>
@@ -134,12 +149,9 @@ export default function MainMenu({ level, completed, onPlay, onRandom, onLevels,
           <li><i style={{ background: '#c86bff' }} />Portals teleport</li>
         </ul>
       </details>
-      </details>
-      <button type="button" className="credit" onClick={launch} aria-label="Made by Sagar S Rawat">
-        <small aria-hidden>made by</small>
-        <span aria-hidden ref={nameRef}>{'Sagar S Rawat'.split('').map((c, i) => <i key={i} style={{ ['--k' as string]: i }}>{c === ' ' ? '\u00a0' : c}</i>)}</span>
-      </button>
-      <button className="gear" onClick={onSettings} aria-label="Settings"><Icon name="gear" size={22} /></button>
-    </main>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

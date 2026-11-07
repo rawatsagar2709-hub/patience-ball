@@ -9,7 +9,7 @@ import type { GameSettings, GameSnapshot, Level } from '@/lib/types';
 import { BALL_COLORS, THEMES, colorSlot } from '@/lib/themes';
 import { FIXED_DT, loadRapier } from '@/lib/physics/physicsWorld';
 import { Simulation, type SimEvent } from '@/lib/physics/simulation';
-import { haptic, sound } from '@/lib/audio/audioManager';
+import { haptic, playClip, preloadClips, sound } from '@/lib/audio/audioManager';
 import TrayMesh from './Tray';
 import { isMover } from '@/lib/physics/physicsWorld';
 import { hazardTexture } from './materials';
@@ -69,6 +69,8 @@ export default function GameScene({ level, attempt, paused, settings, controller
   const marbles = useRef<THREE.InstancedMesh>(null);
   const streak = useRef(0);
   const lastCup = useRef(0);
+  const lastHappy = useRef(0);
+  const lastLaugh = useRef(0);
   const slowLeft = useRef(0); // seconds of slow motion left (ability)
   const trail = useRef<THREE.InstancedMesh>(null);
   const trailLife = useRef(new Float32Array(TRAIL));
@@ -100,6 +102,7 @@ export default function GameScene({ level, attempt, paused, settings, controller
     input.current.ptr = [0, 0]; // every run starts with a flat board
     loadRapier().then((R) => {
       if (cancelled) return;
+      preloadClips();
       sim = new Simulation(R, level);
       simRef.current = sim;
       const push = () => snapCb.current(sim!.snapshot());
@@ -110,14 +113,21 @@ export default function GameScene({ level, attempt, paused, settings, controller
           streak.current = now - lastCup.current < 1600 ? streak.current + 1 : 1;
           lastCup.current = now;
           sound.cup(streak.current);
+          if (streak.current === 3 && now - lastHappy.current > 4000) { lastHappy.current = now; playClip('happy'); }
           hintAt.current.last = sim!.elapsed;
           window.dispatchEvent(new Event('pb-cup'));
           haptic(streak.current > 1 ? [15, 30, 25] : 15, st.haptics);
           if (streak.current > 1) window.dispatchEvent(new CustomEvent('pb-combo', { detail: streak.current }));
         }
-        else if (e === 'lost') { sound.lose(); haptic(30, st.haptics); }
+        else if (e === 'lost') {
+          // A red hole gets a laugh (not more than one every 1.5 s); a ball lost off the edge keeps the plain tone.
+          if (sim!.lossLog[sim!.lossLog.length - 1]?.how === 'trap') { const now = performance.now(); if (now - lastLaugh.current > 1500) { lastLaugh.current = now; playClip('laugh'); } }
+          else sound.lose();
+          haptic(30, st.haptics);
+        }
+        else if (e === 'blocked') playClip('evil');
         else if (e === 'won') { sound.win(); haptic([30, 40, 60], st.haptics); }
-        else if (e === 'failed') sound.fail();
+        else if (e === 'failed') playClip('meow', 1, true);
         else if (e === 'portal') sound.portal();
         else if (e === 'bump') {
           const now = performance.now();

@@ -5,7 +5,7 @@ import type { GameSettings, GameSnapshot, Level, SaveData } from '@/lib/types';
 import { defaultSave } from '@/lib/types';
 import { generateLevel, randomSeed } from '@/lib/levels/levelGenerator';
 import { loadSave, resetSave, writeSave } from '@/lib/storage/saveManager';
-import { setSoundEnabled, sound, startMusic, stopMusic } from '@/lib/audio/audioManager';
+import { playClip, setSoundEnabled, sound, startMusic, stopMusic } from '@/lib/audio/audioManager';
 import { THEMES } from '@/lib/themes';
 import type { GameController } from '@/components/game/GameScene';
 import MainMenu from '@/components/ui/MainMenu';
@@ -464,7 +464,7 @@ export default function Page() {
             phoneTilt={phoneTilt}
             readTilt={() => controller.current?.getTilt() ?? [0, 0]}
             onHelp={() => { const t = level ? tipsOf(level) : []; if (t.length) setTips(t); }}
-            onPause={() => setPaused(true)}
+            onPause={() => { playClip('huh'); setPaused(true); }}
             onRestart={restart}
             onCamera={() => { controller.current?.resetCamera(); calibrate.current(); }}
             onOrbit={(a, e) => controller.current?.orbit(a, e)}

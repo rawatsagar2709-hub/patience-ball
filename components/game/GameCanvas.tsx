@@ -18,7 +18,12 @@ type Mode = 'tilt' | 'orbit';
 
 /** Drag the board to tip it; drag the empty background (or use two fingers, right mouse, shift+drag) to turn the view; pinch or wheel zooms. */
 export default function GameCanvas(props: Props) {
-  const [dpr, setDpr] = useState(() => Math.min(1.75, typeof window === 'undefined' ? 1.5 : window.devicePixelRatio || 1));
+  const [dpr, setDpr] = useState(() => {
+    if (typeof window === 'undefined') return 1.5;
+    // Weaker devices (4 cores or fewer) start a notch lower; the governor still raises it if frames allow.
+    const cap = (navigator.hardwareConcurrency || 8) <= 4 ? 1.4 : 1.75;
+    return Math.min(cap, window.devicePixelRatio || 1);
+  });
   const maxDpr = useRef(dpr);
   const declines = useRef(0);
   const [shadows, setShadows] = useState(true);
@@ -93,6 +98,7 @@ export default function GameCanvas(props: Props) {
     >
       <Canvas
         shadows={shadows}
+        frameloop={props.paused ? 'demand' : 'always'} /* no drawing behind the pause screen: saves battery */
         dpr={[1, dpr]}
         camera={{ fov: 38, near: 0.5, far: 400, position: [0, 20, 30] }}
         gl={{ alpha: true, antialias: dpr < 1.5, powerPreference: 'high-performance' }}

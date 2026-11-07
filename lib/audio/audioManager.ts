@@ -32,6 +32,39 @@ function tone(freq: number, dur: number, type: OscillatorType = 'sine', vol = 0.
   o.stop(t + dur + 0.02);
 }
 
+// Recorded meme clips. Fetched once (the service worker keeps them for offline play) and decoded on first use.
+const CLIPS = { laugh: '/sounds/laugh.mp3', evil: '/sounds/evil-laugh.mp3', huh: '/sounds/huh.mp3', meow: '/sounds/lose-meow.mp3', happy: '/sounds/happy.mp3' } as const;
+export type Clip = keyof typeof CLIPS;
+const buffers: Partial<Record<Clip, AudioBuffer>> = {};
+const loading = new Set<Clip>();
+const playing = new Set<AudioBufferSourceNode>();
+/** Start fetching and decoding every clip (call when a level starts, after a tap so the audio context may run). */
+export function preloadClips() {
+  const c = ac();
+  if (!c) return;
+  (Object.keys(CLIPS) as Clip[]).forEach((k) => {
+    if (buffers[k] || loading.has(k)) return;
+    loading.add(k);
+    fetch(CLIPS[k]).then((r) => r.arrayBuffer()).then((d) => c.decodeAudioData(d)).then((b) => { buffers[k] = b; }).catch(() => {}).finally(() => loading.delete(k));
+  });
+}
+/** Play a clip; `only` cuts off whatever clip is still playing first. */
+export function playClip(name: Clip, vol = 0.9, only = false) {
+  const c = ac();
+  const b = buffers[name];
+  if (!c || !enabled) return;
+  if (!b) { preloadClips(); return; }
+  if (only) playing.forEach((n) => { try { n.stop(); } catch { /* already ended */ } });
+  const src = c.createBufferSource();
+  const g = c.createGain();
+  g.gain.value = vol;
+  src.buffer = b;
+  src.connect(g).connect(c.destination);
+  playing.add(src);
+  src.onended = () => playing.delete(src);
+  src.start();
+}
+
 export const sound = {
   click: () => tone(520, 0.06, 'triangle', 0.08),
   release: () => tone(300, 0.12, 'sine', 0.1, 0, 520),
